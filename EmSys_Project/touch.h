@@ -2,19 +2,21 @@
 #define TOUCH_H_
 
 #include "stdbool.h"
+#include "spi.h"
+#include "display.h"
 
 #define TOUCH_IRQ_PIN PD2
 #define GET_X_COMMAND 0x90
 #define GET_Y_COMMAND 0xD0
 
-#define BUTTON_X_START 3562
-#define BUTTON_X_END 4000
+#define BUTTON_X_START 832
+#define BUTTON_X_END 384
 
-#define CURSOR_Y_TOP 1152
-#define HOLD_Y_TOP 1728
-#define WAVE_Y_TOP 2256
-#define TOGGLE_Y_TOP 3200
-#define TOGGLE_Y_BOTTOM 3560
+#define CURSOR_Y_TOP 2976
+#define HOLD_Y_TOP 2248
+#define WAVE_Y_TOP 1728
+#define TOGGLE_Y_TOP 1088
+#define TOGGLE_Y_BOTTOM 544
 
 #define CURSOR_BUTTON 1
 #define HOLD_BUTTON 2
@@ -22,10 +24,10 @@
 #define TOGGLE_BUTTON 4
 #define CALIBRATION 5
 
-#define CALIBRATION_BUTTON_X_START 1250
-#define CALIBRATOIN_BUTTON_Y_START 2720
-#define CALIBRATION_BUTTON_X_END 3200
-#define CALBIRATION_BUTTON_Y_END 3200
+#define CALIBRATION_BUTTON_X_START 3200
+#define CALIBRATOIN_BUTTON_Y_START 1450
+#define CALIBRATION_BUTTON_X_END 1248
+#define CALBIRATION_BUTTON_Y_END 1000
 
 void Touch_IRQ_Init(void);
 uint16_t touch_spi_transfer(uint8_t command);

@@ -1,6 +1,7 @@
 #include "buttons.h"
 #include <avr/interrupt.h>
 
+#define CMD_BUFFER_SIZE 32
 extern bool start_button_pressed;
 extern bool voltage_button_pressed;
 extern bool right_button_pressed;

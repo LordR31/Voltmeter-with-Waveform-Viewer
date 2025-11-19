@@ -1,6 +1,4 @@
-#include "spi.h"
 #include "touch.h"
-#include "display.h"
 
 extern bool touch_pending;
 extern bool is_plot_on;
@@ -47,17 +45,17 @@ uint16_t read_touch_y(void) {                            // function to get the 
 
 uint8_t check_touch_buttons(uint16_t x, uint16_t y){     // function to if the touch was accidental or on purpose (it was a button press) 
 	if(is_calibrated){
-		if((x >= BUTTON_X_START) & (x <= BUTTON_X_END))          // if we are within the limits of the button menu for X
-			if((y >= CURSOR_Y_TOP) & (y < HOLD_Y_TOP))           // then, if we are within the vertical limits of the Cursor Button
+		if((x <= BUTTON_X_START) & (x >= BUTTON_X_END))          // if we are within the limits of the button menu for X
+			if((y <= CURSOR_Y_TOP) & (y > HOLD_Y_TOP))           // then, if we are within the vertical limits of the Cursor Button
 				return CURSOR_BUTTON;                        // return that it was a Cursor Button press
-			else if((y >= HOLD_Y_TOP) & (y < WAVE_Y_TOP))        // otherwise, if we are within the vertical limits of the Hold Button
+			else if((y <= HOLD_Y_TOP) & (y > WAVE_Y_TOP))        // otherwise, if we are within the vertical limits of the Hold Button
 				return HOLD_BUTTON;                          // return that it was a Hold Button press
-			else if((y >= WAVE_Y_TOP) & (y < TOGGLE_Y_TOP))      // otherwise, if we are within the vertical limits of the Waveform Viewer Button
+			else if((y <= WAVE_Y_TOP) & (y > TOGGLE_Y_TOP))      // otherwise, if we are within the vertical limits of the Waveform Viewer Button
 				return WAVE_BUTTON;                          // return that it was a Waveform Viewer Button press
-			else if((y >= TOGGLE_Y_TOP) & (y < TOGGLE_Y_BOTTOM)) // otherwise, if we are within the vertical limits of the Toggle Waveform Type Button
+			else if((y <= TOGGLE_Y_TOP) & (y > TOGGLE_Y_BOTTOM)) // otherwise, if we are within the vertical limits of the Toggle Waveform Type Button
 				return TOGGLE_BUTTON;                        // return that it was a Toggle Waveform Type Button press
 	}else{
-		if((x >= CALIBRATION_BUTTON_X_START) && (x <= CALIBRATION_BUTTON_X_END) && (y >= CALIBRATOIN_BUTTON_Y_START) && (y <= CALBIRATION_BUTTON_Y_END)){
+		if((x <= CALIBRATION_BUTTON_X_START) && (x >= CALIBRATION_BUTTON_X_END) && (y <= CALIBRATOIN_BUTTON_Y_START) && (y >= CALBIRATION_BUTTON_Y_END)){
 			return CALIBRATION;
 		}
 	}

@@ -6,6 +6,8 @@
 #include <stdint.h>
 #include <stdio.h>
 
+#define DEBUG_MODE
+
 #define DISPLAY_CS   PB6  // pin 12
 #define DISPLAY_RST  PB5  // pin 11
 #define DISPLAY_DC   PB4  // pin 10

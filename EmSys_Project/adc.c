@@ -31,12 +31,8 @@ void ADC_get_max_value(){
 	}
 	float average_value = adc_sum / (float)NUM_SAMPLES;           // get the average
 
-	// This average_value is the ADC reading for a known 4.810V input
-	// So we compute how much voltage each ADC unit represents
 	calibrated_adc_step = 4.810 / average_value;
-
-	// Optional: store the actual ADC value for diagnostics
-	max_voltage_value = average_value * calibrated_adc_step;      // should be exactly 4.810
+	max_voltage_value = average_value * calibrated_adc_step;      // *should* be 4.810
 }
 
 

@@ -1,5 +1,6 @@
 #include "display.h"
 #include <util/delay.h>
+#include <string.h>
 #include <avr/pgmspace.h>
 #include "glcdfont.c"
 #include "timers.h"
@@ -45,6 +46,9 @@ uint8_t display_rotation = 0;
 int cursor_position = 0;
 
 extern bool is_cursor_on;
+extern bool is_plot_on;
+extern bool is_holding;
+extern bool is_digital_line;
 
 void display_send_command(uint8_t cmd) {
 	CS_LOW();                                                                                                                           // pull cs low to signal we talk to the display
@@ -398,7 +402,7 @@ void restore_point(){
 }
 
 void clear_plot() { 
-	display_fill_rect(PLOT_X_START - 2, PLOT_Y_TOP - 20, PLOT_X_END - PLOT_X_START + 25, PLOT_Y_BOTTOM - PLOT_Y_TOP + 43, COLOR_BLACK);  // clear the waveform viewer area
+	display_fill_rect(PLOT_X_START - 2, PLOT_Y_TOP - 20, PLOT_X_END - PLOT_X_START + 20, PLOT_Y_BOTTOM - PLOT_Y_TOP + 43, COLOR_BLACK);  // clear the waveform viewer area
 }
 
 void toggle_plot() {
@@ -467,6 +471,8 @@ float get_cursor_voltage() {
 }
 
 void draw_indicator_leds(float voltage, bool is_high_voltage) {
+#ifdef DEBUG_MODE
+#else
 	set_text_size(2);                                                                                                                   // set text size for LED indicators
 	int led_count;
 	if(is_high_voltage){
@@ -496,10 +502,14 @@ void draw_indicator_leds(float voltage, bool is_high_voltage) {
 			display_print(" ", current_x + i * 12, 15);                                                                                 // clear bottom led
 		}
 	}
+#endif
 }
 
 void erase_voltage_zone() {
+#ifdef DEBUG_MODE
+#else
 	display_fill_rect(VOLTAGE_X_BEGIN, VOLTAGE_Y_BEGIN, VOLTAGE_X_END - VOLTAGE_X_BEGIN, VOLTAGE_Y_END - VOLTAGE_Y_BEGIN, COLOR_BLACK); // clear voltage display area
+#endif
 }
 
 void draw_power_on_screen(){
@@ -512,6 +522,15 @@ void draw_power_on_screen(){
 }
 
 void draw_ui(){
+#ifdef DEBUG_MODE
+	set_text_size(3);
+	display_set_color(COLOR_GREEN);
+	if(is_plot_on){
+		display_print("DEBUG MODE", 70, 5);
+		
+	}else
+		display_print("DEBUG MODE", 70, 100);
+#else
 	display_draw_line(0, 35, display_width, 35, COLOR_WHITE);                                    // horizontal voltage line
 	display_draw_line(184, 35, 184, 0, COLOR_WHITE);                                             // vertical voltage line
 	
@@ -529,6 +548,7 @@ void draw_ui(){
 	display_print("Hold", 290, 112);
 	display_print("Wave", 290, 152);
 	display_print("Toggle", 283, 192);
+#endif
 }
 
 void draw_calibration_ui(){
@@ -550,6 +570,8 @@ void draw_calibration_ui(){
 }
 
 void draw_voltmeter(bool is_cursor_on){
+#ifdef DEBUG_MODE
+#else	
 	set_text_size(2);                                                                            // set text size 2
 	display_set_color(COLOR_BLUE);                                                               // set text colour blue
 	if(!is_cursor_on)
@@ -558,28 +580,38 @@ void draw_voltmeter(bool is_cursor_on){
 		display_print("Voltage:", 2, 0);
 		display_print("Cursor:", 2, 15);
 	}
+#endif
 }
 
 void draw_voltage_type(bool is_high_voltage){
+#ifdef DEBUG_MODE
+#else	
 	display_set_color(COLOR_GREEN);
 	if(is_high_voltage)
 	display_print("H", 188, 10);
 	else
 	display_print("L", 188, 10);
+#endif
 }
 
 void draw_cursor_warning(){
+#ifdef DEBUG_MODE
+#else
 	set_text_size(2);
 	display_set_color(COLOR_RED);
 	display_print("Plot must be enabled", 25, 60);                               // warn the user about the problem
 	display_print("for cursor usage!   ", 22, 80);	
+#endif
 }
 
 void draw_toggle_warning(){
+#ifdef DEBUG_MODE
+#else
 	set_text_size(2);
 	display_set_color(COLOR_RED);
 	display_print("Plot must be enabled", 25, 60);                               // warn the user about the problem
 	display_print("to toggle plot type!", 22, 80);
+#endif
 }
 
 void print_voltage(bool is_cursor_on, float voltage_value){
@@ -589,23 +621,62 @@ void print_voltage(bool is_cursor_on, float voltage_value){
 		sprintf(voltage_value_string, "%u.%03uV", voltage_mV / 1000, (voltage_mV % 1000));       // convert mV to V in string (sprintf doesn't seem to work with float to string directly...)
 	else
 		sprintf(voltage_value_string, " %u.%03uV", voltage_mV / 1000, (voltage_mV % 1000));
+#ifdef DEBUG_MODE
+	char message[64] = "";
+	if(is_plot_on){
+		strcat(message, "PLOT ");
+		if(is_digital_line)
+			strcat(message, "DIGITAL ");
+		else
+			strcat(message, "LINE ");
+	}
+	if(is_cursor_on)
+		strcat(message, "CURSOR ");
+	if(is_holding)
+		strcat(message, "HOLD ");
+	
+	strcat(message, "Voltage: ");
+	strcat(message, voltage_value_string);
+	if(is_cursor_on || !is_plot_on)
+		strcat(message, " ");
+	else
+		strcat(message, "\r\n");
+	USART_Send_Msg(message);
+#else
 	set_text_size(2);
 	display_set_color(COLOR_BLUE);
 	if(!is_cursor_on)                                                                            // if the cursor was enabled, move the voltage to the top of the voltmeter zone (instead of in the middle of the zone)
 		display_print(voltage_value_string, 100, 9);                                             // to make space for the cursor voltage
 	else
 		display_print(voltage_value_string, 100, 0);
+#endif
 }
 
 void print_min_max_voltage(bool is_plot_on, float min_value, float max_value){
 	char max_value_string[32];
-	uint16_t voltage_mV = (uint16_t)(max_value * 1000);                                                   // same as above, convert to mV
+	uint16_t voltage_mV = (uint16_t)(max_value * 1000);                                          // same as above, convert to mV
 	sprintf(max_value_string, "Max Voltage: %u.%03uV", voltage_mV / 1000, (voltage_mV % 1000));  // convert mV to V in string
 	
 	char min_value_string[32];
 	voltage_mV = (uint16_t)(min_value * 1000);                                                   // same as above, conver to mV
 	sprintf(min_value_string, "Min Voltage: %u.%03uV", voltage_mV / 1000, (voltage_mV % 1000));  // convert mV to V in string
-	
+
+#ifdef DEBUG_MODE
+	if(!is_plot_on){
+		char min_max_string[64];
+		strcpy(min_max_string, min_value_string);
+		strcat(min_max_string, " ");
+		strcat(min_max_string, max_value_string);
+		strcat(min_max_string, "\r\n");
+		USART_Send_Msg(min_max_string);
+	}else{	
+		set_text_size(1);
+		display_draw_line (20, 57, 260, 57, COLOR_WHITE);                                        // draw the upper line for the plot
+		display_draw_line (20, 217, 260, 217, COLOR_WHITE);                                      // draw the lower line for the plot
+		display_print(max_value_string, 90, 47);                                                 // place max_value on top of the top line
+		display_print(min_value_string, 90, 222);                                                // place min_valu below the bottom line
+	}
+#else
 	if(is_plot_on){                                                                              // if the plot is enable (waveform viewer)
 		set_text_size(1);
 		display_draw_line (20, 57, 260, 57, COLOR_WHITE);                                        // draw the upper line for the plot
@@ -616,6 +687,7 @@ void print_min_max_voltage(bool is_plot_on, float min_value, float max_value){
 		display_print(max_value_string, 25, 120);                                                // otherwise, keep them both in the middle of the waveform viewer area
 		display_print(min_value_string, 25, 140);
 	}
+#endif
 }
 
 void print_cursor_voltage(float voltage_value){
@@ -625,9 +697,18 @@ void print_cursor_voltage(float voltage_value){
 		sprintf(cursor_voltage_string, "%u.%03uV", voltage_mV / 1000, (voltage_mV % 1000));  // convert mV to V in string
 	else
 		sprintf(cursor_voltage_string, " %u.%03uV", voltage_mV / 1000, (voltage_mV % 1000)); // add a space before the value, if voltage < 10, to clean up previous >10 measurements
+
+#ifdef DEBUG_MODE
+	char message[32];
+	strcpy(message, "Cursor: ");
+	strcat(message, cursor_voltage_string);
+	strcat(message, "\r\n");
+	USART_Send_Msg(message);
+#else
 	display_set_color(COLOR_BLUE);
 	set_text_size(2);
 	display_print(cursor_voltage_string, 100, 15);                                       // print the cursor voltage value (in the Voltmeter area)	
+#endif
 }
 
 void insert_plot_points(float *plot_points, float point){

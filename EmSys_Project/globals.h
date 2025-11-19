@@ -1,12 +1,12 @@
 #ifndef GLOBALS_H_
 #define GLOBALS_H_
 
-
 #define F_CPU 16000000UL // cpu freq
 #define MAX_POINTS 25
 
 // FLAGS & VARIABLES
 bool is_system_on = false;
+extern bool is_adc_on;
 
 volatile bool start_button_pressed = false;
 volatile bool left_button_pressed = false;
@@ -17,6 +17,8 @@ bool is_cursor_on = false;
 bool is_plot_on = false;
 bool is_digital_line = false;
 bool is_holding = false;
+
+bool uart_command_pending = false;
 
 bool voltage_button_pressed = false;
 bool is_high_voltage = false;
