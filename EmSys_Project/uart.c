@@ -60,7 +60,14 @@ void USART_Process_Command(void) {
 		}else if (strcmp(command_buffer, "cursor") == 0){
 			execute_button_command(1);
 		}else if (strcmp(command_buffer, "help") == 0) {
-			USART_Send_Msg("This is the list of available commands:\r\nadc_on    -> turns on the ADC\r\nadc_off   -> turns off the ADC\r\nwave      -> turns on waveform viewer\r\ntoggle    -> toggles waveform viewer mode\r\n");
+			USART_Send_Msg("This is the list of available commands:\r\n\
+			adc_on    -> turns on the ADC\r\n\
+			adc_off   -> turns off the ADC\r\n\
+			wave      -> turns on waveform viewer\r\n\
+			toggle    -> toggles waveform viewer mode\r\n\
+			hold      -> toggles the hold function\r\n\
+			cursor    -> toggles the cursor On/Off\
+			");
 	}
 
 	usart_index = 0;  // reset buffer for next command
