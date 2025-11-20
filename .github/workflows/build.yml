@@ -26,7 +26,7 @@ jobs:
       run: |
         cd EmSys_Project
         avr-gcc -mmcu=atmega2560 -Os -o firmware.elf \
-        main.c adc.c display.c buttons.c spi.c timers.c touch.c glcdfont.c
+        main.c adc.c display.c buttons.c spi.c timers.c touch.c glcdfont.c uart.c
         avr-objcopy -O ihex firmware.elf firmware.hex
 
     - name: Upload artifacts
